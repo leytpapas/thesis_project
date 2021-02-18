@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+		    <rosparam file="$(find mybot_pkg)/config/params.yaml"/>
+
+        <node   name="motor_driver_start" pkg="mybot_pkg" type="wheels_node.py" respawn="true" 
+                output="screen">
+        </node>
+</launch>

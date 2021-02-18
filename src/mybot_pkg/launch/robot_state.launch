@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    
+    <rosparam file="$(find mybot_pkg)/config/params.yaml"/>
+    <include file="$(find mybot_pkg)/launch/teleop_start.launch"/>
+
+	  <!-- Combine joint values -->
+    <param name="robot_description" command="xacro '$(find mybot_description)/urdf/mybot.xacro'"/>
+   <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+    <param name="use_gui" value="False"/>
+  </node>
+
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" >
+	<!-- <remap from="joint_states" to="different_joint_states" /> -->
+    <!-- <jointName>left_wheel_hinge,right_wheel_hinge</jointName> -->
+  </node>
+
+</launch>

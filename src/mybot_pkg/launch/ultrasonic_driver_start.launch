@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <rosparam file="$(find mybot_pkg)/config/params.yaml"/>
+
+    <node name="ultrasonic_data" pkg="mybot_pkg" type="ultrasonic_pub.py" respawn="true" output="screen">
+    </node>
+</launch>

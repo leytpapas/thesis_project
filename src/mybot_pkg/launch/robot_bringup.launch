@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    
+    <rosparam file="$(find mybot_pkg)/config/params.yaml"/>
+
+	<include file="$(find mybot_pkg)/launch/imu_start.launch"/>
+
+    <include file="$(find mybot_pkg)/launch/motor_driver_start.launch"/>
+    
+    <!-- <include file="$(find mybot_pkg)/launch/camera_bringup.launch"/> -->
+
+    <include file="$(find mybot_pkg)/launch/ultrasonic_driver_start.launch"/>
+
+	<!-- <include file="$(find mybot_pkg)/launch/teleop_start.launch"/> -->
+
+    <!-- <include file="$(find mybot_pkg)/launch/my_brain.launch"/> -->
+    
+</launch>

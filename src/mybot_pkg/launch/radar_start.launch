@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+	    <rosparam file="$(find mybot_pkg)/config/params.yaml"/>
+
+        <node   name="radar_start" pkg="mybot_pkg" type="radar_pub.py" respawn="false" 
+                output="screen">
+        </node>
+</launch>

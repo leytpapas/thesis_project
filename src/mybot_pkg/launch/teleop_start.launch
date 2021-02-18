@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+	    <rosparam file="$(find mybot_pkg)/config/params.yaml"/>
+	    <node name="joy" pkg="joy" type="joy_node" output="screen" > 
+	    	<param name="dev" value="/dev/input/js1"/>
+	   	</node>
+        <node   name="teleop_start" pkg="mybot_pkg" type="teleop.py" respawn="true" output="screen">
+        </node>
+</launch>

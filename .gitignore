@@ -1,0 +1,7 @@
+src/my_navigate/
+src/mybot_description/
+src/mybot_control/
+devel/
+install/
+build/
+.vs*
