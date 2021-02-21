@@ -91,6 +91,9 @@ The list of components is:
 * GY521 based on mpu6050
 * md25 Motor Drive with emg30 motors
 * usb camera
+
+https://www.youtube.com/playlist?list=PLawvnuvC75Fs_ePslJ3tsKYGS6T3wsntw
+
 ### Built With
 
 <!-- This section should list any major frameworks that you built your project using. Leave any add-ons/plugins for the acknowledgements section. Here are a few examples. -->
