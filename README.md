@@ -40,11 +40,11 @@
     <a href="https://github.com/leytpapas/thesis_project"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="https://github.com/leytpapas/thesis_project">View Demo</a>
+    <a href="https://www.youtube.com/playlist?list=PLawvnuvC75Fs_ePslJ3tsKYGS6T3wsntw">View Demo</a>
     ·
-    <a href="https://github.com/leytpapas/thesis_project/issues">Report Bug</a>
+    <!-- <a href="https://github.com/leytpapas/thesis_project/issues">Report Bug</a> -->
     ·
-    <a href="https://github.com/leytpapas/thesis_project/issues">Request Feature</a>
+    <!-- <a href="https://github.com/leytpapas/thesis_project/issues">Request Feature</a> -->
   </p>
 </p>
 
@@ -81,7 +81,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
+<!-- [![Product Name Screen Shot][product-screenshot]](https://example.com) -->
 
 A mobile robot that follows the line, based on calibrated values, and avoids obstacles using ultrasonic sensors
 The list of components is:
