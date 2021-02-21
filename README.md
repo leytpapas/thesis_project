@@ -28,9 +28,9 @@
 <!-- PROJECT LOGO -->
 <br />
 <p align="center">
-  <a href="https://github.com/leytpapas/thesis_project">
+  <!-- <a href="https://github.com/leytpapas/thesis_project">
     <img src="images/logo.png" alt="Logo" width="80" height="80">
-  </a>
+  </a> -->
 
   <h3 align="center">Thesis Project</h3>
 
@@ -51,7 +51,7 @@
 
 
 <!-- TABLE OF CONTENTS -->
-<details open="open">
+<!-- <details open="open">
   <summary>Table of Contents</summary>
   <ol>
     <li>
@@ -74,7 +74,7 @@
     <li><a href="#contact">Contact</a></li>
     <li><a href="#acknowledgements">Acknowledgements</a></li>
   </ol>
-</details>
+</details> -->
 
 
 
@@ -106,11 +106,13 @@ https://www.youtube.com/playlist?list=PLawvnuvC75Fs_ePslJ3tsKYGS6T3wsntw
 
 
 <!-- GETTING STARTED -->
-## Getting Started
+<!-- ## Getting Started -->
 
-Follow installation instructions
+<!-- Run installation.sh script to install Prerequisites -->
 
 ### Prerequisites
+
+Run installation.sh script to install Prerequisites
 <!-- 
 This is an example of how to list things you need to use the software and how to install them.
 * npm
@@ -118,26 +120,25 @@ This is an example of how to list things you need to use the software and how to
   npm install npm@latest -g
   ``` -->
 
-### Installation
+<!-- ### Installation
 
-<!-- 1. Get a free API Key at [https://example.com](https://example.com)
-2. Clone the repo
+1. Clone the repo
    ```sh
    git clone https://github.com/your_username_/Project-Name.git
    ```
-3. Install NPM packages
+2. Install NPM packages
    ```sh
    npm install
    ```
-4. Enter your API in `config.js`
+3. Enter your API in `config.js`
    ```JS
    const API_KEY = 'ENTER YOUR API'; 
-   ```
--->
+   ``` -->
+
 
 
 <!-- USAGE EXAMPLES -->
-## Usage
+<!-- ## Usage -->
 
 <!-- Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
 
@@ -146,14 +147,14 @@ _For more examples, please refer to the [Documentation](https://example.com)_ --
 
 
 <!-- ROADMAP -->
-## Roadmap
+<!-- ## Roadmap
 
-See the [open issues](https://github.com/leytpapas/thesis_project/issues) for a list of proposed features (and known issues).
+See the [open issues](https://github.com/leytpapas/thesis_project/issues) for a list of proposed features (and known issues). -->
 
 
 
 <!-- CONTRIBUTING -->
-## Contributing
+<!-- ## Contributing
 
 Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
@@ -163,7 +164,7 @@ Contributions are what make the open source community such an amazing place to b
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-
+ -->
 
 <!-- LICENSE -->
 ## License
@@ -173,16 +174,16 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 
 <!-- CONTACT -->
-## Contact
+<!-- ## Contact -->
 
 <!-- Your Name - [@your_twitter](https://twitter.com/your_username) - email@example.com -->
 
-Project Link: [https://github.com/leytpapas/thesis_project](https://github.com/leytpapas/thesis_project)
+<!-- Project Link: [https://github.com/leytpapas/thesis_project](https://github.com/leytpapas/thesis_project) -->
 
 
 
 <!-- ACKNOWLEDGEMENTS -->
-## Acknowledgements
+<!-- ## Acknowledgements -->
 <!-- * [GitHub Emoji Cheat Sheet](https://www.webpagefx.com/tools/emoji-cheat-sheet)
 * [Img Shields](https://shields.io)
 * [Choose an Open Source License](https://choosealicense.com)
