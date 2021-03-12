@@ -13,6 +13,8 @@
 #include <sensor_msgs/image_encodings.h>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <omp.h>
+
 // #include <QPULib.h>
 // #include "geometry_msgs/Bool.h"
 #include <sstream>
@@ -20,11 +22,13 @@
 #include <cmath>
 #define RASPI //in order to not do unecassary stuff
 #define FASTPOW
-#define SQRT //in order to use sqrt instead of lookuptables
 #define RGB
 #define HSV
-#define CUSTOM
-#define GRAYWORLD
+// #define CUSTOM
+// #define GRAYWORLD
+// #define LUM
+#define OMP
+#define MYSQRT  //in order to use a quick sqrt with decimal precision instead of the built-in 'sqrt'
 
 // #define DEBUG
 // #define DEBUG_PC
@@ -53,10 +57,8 @@ cv_bridge::CvImageConstPtr cv_ptr;
 sensor_msgs::Image img_msg; // >> message to be sent
 ros::Subscriber sub;
 ros::Subscriber sub2;
-#ifdef DEBUG
 cv_bridge::CvImage cv_ptr_out;
 ros::Publisher image_pub;
-#endif
 
 #ifdef DEBUG_PC
 cv_bridge::CvImage cv_ptr_out_rgb;
@@ -71,10 +73,20 @@ void generate(uchar input);
 #endif
 void image_data(const sensor_msgs::ImageConstPtr &msg);
 
-#define min_f(a, b, c) (fminf(a, fminf(b, c)))
-#define max_f(a, b, c) (fmaxf(a, fmaxf(b, c)))
+// #define min_f(a, b, c) (fminf(a, fminf(b, c)))
+// #define max_f(a, b, c) (fmaxf(a, fmaxf(b, c)))
 #define min(a, b, c) (min(a, min(b, c)))
 #define max(a, b, c) (max(a, max(b, c)))
+
+float my_sqrt(float x)
+{
+    unsigned int i = *(unsigned int *)&x;
+    // adjust bias
+    i += 127 << 23;
+    // approximation of square root
+    i >>= 1;
+    return *(float *)&i;
+}
 
 double fastPow(double a, double b)
 {
@@ -92,11 +104,6 @@ int calcDistEuclidean(Point a, Point b, bool complex = false)
 {
     return sqrt(fastPow(a.x - b.x, 2) + fastPow(a.y - b.y, 2));
 }
-
-// float square_root( float val ) {
-//     __asm__ __volatile__("fsqrt" : "+t" (val));
-//     return val ;
-// }
 
 static bool cmp(const vector<Point> &lhs, const vector<Point> &rhs)
 {
@@ -215,7 +222,6 @@ Point filterWorld(Mat *src, Mat *dst)
     }
     //Get the RGB value of each pixel of the input image
     uchar r, g, b;
-
     // medianBlur(*src, *src, 3);
     // normalize(*src,*src,tD,tU,NORM_MINMAX); // this or Gray world help very much, but are not time efficient
     medianBlur(*src, *src, 3);
@@ -223,9 +229,11 @@ Point filterWorld(Mat *src, Mat *dst)
     // gaussian should be better but is slower
 
 #ifdef GRAYWORLD
+#ifdef OMP
 #pragma omp parallel for reduction(+ \
-                                   : R, G, B) shared(src)
-    for (int i = row/2; i < row; ++i)
+                                   : R, G, B) shared(src) num_threads(4)
+#endif
+    for (int i = 0; i < row; ++i)
     {
         for (int j = 0; j < col; ++j)
         {
@@ -234,20 +242,28 @@ Point filterWorld(Mat *src, Mat *dst)
             B += 1.0 * src->ptr<uchar>(i, j)[2];
         }
     }
-#pragma omp ordered
+#ifdef OMP
+#pragma omp ordered num_threads(4)
+#endif
     //Average
-    R /= ((row/2) * col);
-    B /= ((row/2) * col);
-    G /= ((row/2) * col);
-    // printf("Average B, G, R:%.5f %.5f %.5f\n", B, G, R);
+    R /= ((row / 2) * col);
+    B /= ((row / 2) * col);
+    G /= ((row / 2) * col);
+#ifdef DEBUG
+    printf("Average B, G, R:%.5f %.5f %.5f\n", B, G, R);
+#endif
     //Calculate the average value of the three RGB channels of the image
     double GrayValue = (R + G + B) / 3;
-    // printf("GrayValue %.5f\n", GrayValue);
+#ifdef DEBUG
+    printf("GrayValue %.5f\n", GrayValue);
+#endif
     //Calculate the gain coefficient of the three channels
     double kr = GrayValue / R;
     double kg = GrayValue / G;
     double kb = GrayValue / B;
-    // printf("kb, kg, kr: %.5f %.5f %.5f\n", kb, kg, kr);
+#ifdef DEBUG
+    printf("kb, kg, kr: %.5f %.5f %.5f\n", kb, kg, kr);
+#endif
 #endif
     //-- According to the diagonal model of Von Kries. For each pixel in the image C adjustment adjusts its RGB components
     //-- After that filter using euclidean distance;
@@ -256,10 +272,14 @@ Point filterWorld(Mat *src, Mat *dst)
     double hsv_min, hsv_max;
     double h, s, v;
     uchar delta;
-
-#pragma omp parallel private(i, j, temp, hsv_min, hsv_max, h, s, v) shared(row, col, dst, euclidean_distance, lookupTable, euclidean_color)
+    int tid;
+#ifdef OMP
+#pragma omp parallel private(i, j, tid, temp, hsv_min, hsv_max, h, s, v, r, g, b) shared(row, col, src, dst, euclidean_distance, euclidean_color) num_threads(4) 
     {
 #pragma omp for collapse(2)
+#endif        
+        printf("%d :number of threads = %d\n", omp_get_thread_num(), omp_get_num_threads());
+
         for (i = 0; i < row; i++)
         {
             // #pragma omp for private(pixel)// schedule(dynamic)
@@ -272,28 +292,16 @@ Point filterWorld(Mat *src, Mat *dst)
                 r = (int)(kr * r) > 255 ? 255 : (int)(kr * r);
                 g = (int)(kg * g) > 255 ? 255 : (int)(kg * g);
                 b = (int)(kb * b) > 255 ? 255 : (int)(kb * b);
-
 #endif
-
 #ifdef DEBUG_PC
                 dst2->ptr<uchar>(i, j)[0] = r;
                 dst2->ptr<uchar>(i, j)[1] = g;
                 dst2->ptr<uchar>(i, j)[2] = b;
 #endif
-
 #ifdef HSV
                 // MinMax() Needs at least 4 comparisons
                 hsv_min = min(r, g, b);
                 hsv_max = max(r, g, b);
-                // if (g > hsv_max)
-                //     hsv_max = g;
-                // else if (g < hsv_min)
-                //     hsv_min = g;
-                // if (b > hsv_max)
-                //     hsv_max = b;
-                // else if (b < hsv_min)
-                //     hsv_min = b;
-
                 v = hsv_max;
                 delta = hsv_max - hsv_min;
                 if (hsv_max == 0 || delta == 0)
@@ -313,14 +321,14 @@ Point filterWorld(Mat *src, Mat *dst)
                     if (h < 0.0)
                         h += 360.0;
                 }
-
 #endif
+#if defined(RGB) && defined(MYSQRT) && defined(LUM)
                 // sqrt( 0.299*R^2 + 0.587*G^2 + 0.114*B^2 ) == Luminance of pixel
-
-#if defined(RGB) && defined(SQRT)
-                temp = (uchar)(sqrt(fastPow(r - euclidean_color.at(0), 2) + fastPow(g - euclidean_color.at(1), 2) + fastPow(b - euclidean_color.at(2), 2)));
+                temp = (uchar)(my_sqrt(0.299 * fastPow(r - euclidean_color.at(0), 2) + 0.587 * fastPow(g - euclidean_color.at(1), 2) + 0.144 * fastPow(b - euclidean_color.at(2), 2)));
+#elif defined(RGB) && defined(MYSQRT)
+            temp = (uchar)(my_sqrt(fastPow(r - euclidean_color.at(0), 2) + fastPow(g - euclidean_color.at(1), 2) + fastPow(b - euclidean_color.at(2), 2)));
 #elif defined(RGB)
-                temp = (uchar)(sqrt(fastPow(r - euclidean_color.at(0), 2) + fastPow(g - euclidean_color.at(1), 2) + fastPow(b - euclidean_color.at(2), 2)));
+            temp = (uchar)(sqrt(fastPow(r - euclidean_color.at(0), 2) + fastPow(g - euclidean_color.at(1), 2) + fastPow(b - euclidean_color.at(2), 2)));
 #endif
 
 #if defined(RGB) and defined(HSV) and defined(CUSTOM)
@@ -333,39 +341,39 @@ Point filterWorld(Mat *src, Mat *dst)
                     dst->ptr<uchar>(i, j)[0] = 255; // one channel
                 }
 #elif defined(RGB) and defined(HSV)
-                if (!inRange(0, 100, h / 2) && temp < euclidean_distance)
-                {
-                    dst->ptr<uchar>(i, j)[0] = 255; // one channel
-                }
+            if (!inRange(0, 100, h / 2) && temp < euclidean_distance)
+            {
+                dst->ptr<uchar>(i, j)[0] = 255; // one channel
+            }
 #elif defined(HSV) and defined(CUSTOM)
-                if ((r < lumD && g < lumD && b < lumD) || (r > lumU && g > lumU && b > lumU))
-                {
-                    dst->ptr<uchar>(i, j)[0] = 0;
-                }
-                else if (!inRange(0, 100, h / 2))
-                {
-                    dst->ptr<uchar>(i, j)[0] = 255; // one channel
-                }
+            if ((r < lumD && g < lumD && b < lumD) || (r > lumU && g > lumU && b > lumU))
+            {
+                dst->ptr<uchar>(i, j)[0] = 0;
+            }
+            else if (!inRange(0, 100, h / 2))
+            {
+                dst->ptr<uchar>(i, j)[0] = 255; // one channel
+            }
 #elif defined(HSV)
 
-                if (!inRange(0, 100, h / 2))
-                {
-                    dst->ptr<uchar>(i, j)[0] = 255; // one channel
-                }
+            if (!inRange(0, 100, h / 2))
+            {
+                dst->ptr<uchar>(i, j)[0] = 255; // one channel
+            }
 #elif defined(RGB) and defined(CUSTOM)
-                if ((r < lumD && g < lumD && b < lumD) || (r > lumU && g > lumU && b > lumU))
-                {
-                    dst->ptr<uchar>(i, j)[0] = 0;
-                }
-                else if (temp < euclidean_distance)
-                {
-                    dst->ptr<uchar>(i, j)[0] = 255; // one channel
-                }
+            if ((r < lumD && g < lumD && b < lumD) || (r > lumU && g > lumU && b > lumU))
+            {
+                dst->ptr<uchar>(i, j)[0] = 0;
+            }
+            else if (temp < euclidean_distance)
+            {
+                dst->ptr<uchar>(i, j)[0] = 255; // one channel
+            }
 #elif defined(RGB)
-                if (temp < euclidean_distance)
-                {
-                    dst->ptr<uchar>(i, j)[0] = 255; // one channel
-                }
+            if (temp < euclidean_distance)
+            {
+                dst->ptr<uchar>(i, j)[0] = 255; // one channel
+            }
 #endif
                 else
                 {
@@ -373,29 +381,33 @@ Point filterWorld(Mat *src, Mat *dst)
                 }
             }
         }
+#ifdef OMP
     }
-
+#endif
     morphologyEx(*dst, *dst, MORPH_OPEN, getStructuringElement(MORPH_CROSS, Size(3, 3)));
     morphologyEx(*dst, *dst, MORPH_CLOSE, getStructuringElement(MORPH_CROSS, Size(3, 3)));
     vector<vector<Point>> contours;
     findContours(*dst, contours, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
-    if (contours.size() == 0){
+    if (contours.size() == 0)
+    {
+#ifdef DEBUG
         cout << "0 contours" << endl;
+#endif
+
         return Point(0, 0);
     }
-    cout << contours.size() << endl;
     std::sort(contours.begin(), contours.end(), cmp); // 12 32 45 71(26 33 53 80)
 
     // vector<Point> max_contour = *max_element(contours.begin(), contours.end(), cmp);
-    cout << contourArea(contours[0]) << endl;
     if (contourArea(contours[0]) < tU) // this is for full resolution
     {
-        // return dst;
+#ifdef DEBUG
         cout << "Didnt find any" << endl;
+#endif
         return Point(0, 0);
     }
 #ifdef DEBUG_PC
-    drawContours(*dst2, contours, 0, Scalar(255,0,0), 2, LINE_8, 0, 0 );
+    drawContours(*dst2, contours, 0, Scalar(255, 0, 0), 2, LINE_8, 0, 0);
 #endif
 
     vector<vector<Point>> list_exits(5); //list_exits = {"South": [], "North": [], "West": [], "East": [], "rest of the points":[]}
@@ -403,7 +415,6 @@ Point filterWorld(Mat *src, Mat *dst)
     double epsilon = 0.01 * arcLength(contours[0], false); //eps_line
     vector<Point> aprox;
     approxPolyDP(contours[0], aprox, epsilon, true);
-
     for (i = 0; i < aprox.size(); i++)
     {
         Point point = aprox[i];
@@ -529,7 +540,6 @@ void camera_info(const sensor_msgs::ImageConstPtr &msg)
     row = msg->height;
     col = msg->width;
     pix_off = msg->height / 10;
-#ifdef DEBUG
 
     cv_ptr_out = [] {
         cv_bridge::CvImage ret;
@@ -543,7 +553,6 @@ void camera_info(const sensor_msgs::ImageConstPtr &msg)
         return ret;
     }();
     ROS_INFO("Camera input frame: %d*%d", col, row);
-#endif
 #ifdef DEBUG_PC
 
     cv_ptr_out_rgb = [] {
@@ -564,9 +573,8 @@ void camera_info(const sensor_msgs::ImageConstPtr &msg)
 #endif
     // sleep(1);
     sub2 = n->subscribe("/usb_cam_node/image_raw", 1, image_data);
-#ifdef DEBUG
     image_pub = n->advertise<sensor_msgs::Image>("mybot_out/im_out", 1);
-#endif
+
 #ifdef DEBUG_PC
     image_pub_rgb = n->advertise<sensor_msgs::Image>("mybot_out/im_out_rgb", 1);
 #endif
@@ -614,7 +622,6 @@ void image_data(const sensor_msgs::ImageConstPtr &msg)
     try
     {
         cv_ptr = cv_bridge::toCvShare(msg, sensor_msgs::image_encodings::RGB8); // modify shared msg,be careful with other callbacks of same topic
-
         gettimeofday(&beg, NULL);
         cout << filterWorld((Mat *)&cv_ptr->image, (Mat *)&cv_ptr_out.image) << endl;
         gettimeofday(&end, NULL);
@@ -626,11 +633,9 @@ void image_data(const sensor_msgs::ImageConstPtr &msg)
         elapsed_time += (end.tv_usec - beg.tv_usec) / 1000.0; // us to ms
 
         printf("Time/frame: %f ms, %f fps: \n", elapsed_time, 1000 / elapsed_time);
-#ifdef DEBUG
         cv_ptr_out.header.seq = seq++;
         cv_ptr_out.header.stamp = ros::Time::now();
         image_pub.publish(cv_ptr_out.toImageMsg());
-#endif
 #ifdef DEBUG_PC
         cv_ptr_out_rgb.header.seq = seq++;
         cv_ptr_out_rgb.header.stamp = ros::Time::now();
