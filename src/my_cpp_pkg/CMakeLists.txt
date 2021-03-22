@@ -16,9 +16,17 @@ find_package(catkin REQUIRED COMPONENTS
 
 enable_language(ASM)
 find_package(OpenCV REQUIRED )
+# find_package( OpenCL REQUIRED )
+
 # find_package(OpenMP)
 find_package(OpenMP REQUIRED)
-
+if(OPENMP_FOUND)
+  message(STATUS "OPENMP FOUND\nSETTING FLAGS & ADD DEFINE")
+  set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+  set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+  add_definitions(-DOMP)
+endif()
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -112,7 +120,7 @@ catkin_package(
   # INCLUDE_DIRS include
 #  LIBRARIES my_cpp
 #  CATKIN_DEPENDS roscpp std_msgs
-#  DEPENDS system_lib
+#  DEPENDS OpenMP
 )
 
 ###########
@@ -123,6 +131,7 @@ catkin_package(
 ## Your package locations should be listed before other locations
 include_directories(include
   ${catkin_INCLUDE_DIRS}
+  # ${OPENCL_INCLUDE_DIR}
 )
 
 
@@ -147,9 +156,10 @@ include_directories(include
 # add_executable(${PROJECT_NAME}_node src/my_cpp_node.cpp)
 add_executable( ${PROJECT_NAME}_node
  src/gray.cpp 
- #src/qpu_test.cpp
  )
-
+#  add_executable( ${PROJECT_NAME}_node1
+#  src/opencl.cpp
+#  )
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -157,6 +167,7 @@ add_executable( ${PROJECT_NAME}_node
 ## e.g. "rosrun someones_pkg node" instead of "rosrun someones_pkg someones_pkg_node"
 # set_target_properties(${PROJECT_NAME}_node PROPERTIES OUTPUT_NAME node PREFIX "")
 set_target_properties(${PROJECT_NAME}_node PROPERTIES LINKER_LANGUAGE CXX)
+# set_target_properties(${PROJECT_NAME}_node1 PROPERTIES LINKER_LANGUAGE CXX)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -170,7 +181,12 @@ set_target_properties(${PROJECT_NAME}_node PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(${PROJECT_NAME}_node
    ${catkin_LIBRARIES}
    ${OpenCV_LIBS}
+   ${OpenMP_LIBS}
 )
+# target_link_libraries(${PROJECT_NAME}_node1
+#    ${catkin_LIBRARIES}
+#    ${OpenCV_LIBS}
+# )
 
 
 
