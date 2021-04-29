@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(mybot_pkg)
+project(mybot_msg)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -12,32 +12,9 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   roscpp
   std_msgs
-  cv_bridge
-  mybot_msg
+  message_generation
 )
 
-
-enable_language(ASM)
-set(CMAKE_ASM_FLAGS "${CFLAGS} -x assembler-with-cpp")
-find_package(OpenCV REQUIRED )
-
-# add_definitions(-DMYSQRT)
-# add_definitions(-DFASTPOW)
-# add_definitions(-DINLINE_POWER)
-# add_definitions(-DRGB)
-# add_definitions(-DHSV)
-# add_definitions(-DGRAYWORLD)
-# add_definitions(-DLUM)
-
-# find_package(OpenMP) #REQUIRED
-# if(OPENMP_FOUND)
-#   message(STATUS "OPENMP FOUND")
-#   message("SETTING COMPILE FLAGS & ADD DEFINE")
-#   set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-#   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-#   set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
-#   add_definitions(-DOMP)
-# endif()
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -73,12 +50,12 @@ find_package(OpenCV REQUIRED )
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-  # FILES
-  # navigate_msg.msg
+add_message_files(
+  FILES
+  navigate_msg.msg
   #   Message1.msg
 #   Message2.msg
-# )
+)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -95,11 +72,10 @@ find_package(OpenCV REQUIRED )
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-  # DEPENDENCIES
-  # geometry_msgs
-  # std_msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -132,8 +108,8 @@ find_package(OpenCV REQUIRED )
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES mybot_pkg
- CATKIN_DEPENDS geometry_msgs rospy roscpp
+#  LIBRARIES mybot_msg
+ CATKIN_DEPENDS message_runtime geometry_msgs rospy roscpp
 #  DEPENDS system_lib
 )
 
@@ -143,14 +119,14 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-include_directories(
+#include_directories(
 # include
-  ${catkin_INCLUDE_DIRS}
-)
+#  ${catkin_INCLUDE_DIRS}
+#)
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/mybot_pkg.cpp
+#   src/${PROJECT_NAME}/mybot_msg.cpp
 # )
 
 ## Add cmake target dependencies of the library
@@ -161,12 +137,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/mybot_pkg_node.cpp)
-
-
-add_executable( line_detection # ${PROJECT_NAME}_node
-  scripts/gray.cpp 
-)
+# add_executable(${PROJECT_NAME}_node src/mybot_msg_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -174,22 +145,11 @@ add_executable( line_detection # ${PROJECT_NAME}_node
 ## e.g. "rosrun someones_pkg node" instead of "rosrun someones_pkg someones_pkg_node"
 # set_target_properties(${PROJECT_NAME}_node PROPERTIES OUTPUT_NAME node PREFIX "")
 
-
-set_target_properties( line_detection # ${PROJECT_NAME}_node
- PROPERTIES LINKER_LANGUAGE CXX)
-set_target_properties( line_detection PROPERTIES COMPILE_FLAGS "-O3 -ffp-contract=on -march=native")
-# 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-add_dependencies(line_detection ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries( line_detection # ${PROJECT_NAME}_node
-  ${catkin_LIBRARIES}
-  ${OpenCV_LIBS}
-  ${OpenMP_LIBS}
-)
 
 
 #############
@@ -232,7 +192,7 @@ target_link_libraries( line_detection # ${PROJECT_NAME}_node
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_mybot_pkg.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_mybot_msg.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
