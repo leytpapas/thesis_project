@@ -2,6 +2,6 @@
 <launch>
 	    <rosparam file="$(find mybot_pkg)/config/params.yaml"/>
 
-        <node   name="imu_start" pkg="mybot_pkg" type="imu_pub.py" respawn="true" output="screen">
+        <node name="imu_node" pkg="mybot_pkg" type="imu_pub.py" respawn="true" output="screen">
         </node>
 </launch>

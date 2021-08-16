@@ -2,7 +2,6 @@
 
 <launch>
 	<rosparam file="$(find mybot_pkg)/config/params.yaml"/>
-
-	<node pkg="my_navigate" type="Brain.py" name="LefosNode" output="screen">
+		<node pkg="mybot_pkg" type="Brain.py" name="BrainNode" output="screen">
 	</node>
 </launch>

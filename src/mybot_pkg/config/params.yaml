@@ -38,7 +38,7 @@ hsv_high:
   - 100 # out of h 0...180
   - 255
   - 255
-contour_area_min: 15000
+contour_area_min: 7000
 # tD: 95
 luminocity_up: 120
 luminocity_low: 60
@@ -64,3 +64,6 @@ rate: 15 # can also be  dynamically calculated based on various nodes' preforman
 joint_frames:
   - "left_wheel"
   - "right_wheel"
+
+port: "/dev/ttyACM0"
+baud: 57600
